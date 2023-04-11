@@ -20,73 +20,81 @@ const daysValue = document.querySelector('[data-days]');
 const hoursValue = document.querySelector('[data-hours]');
 const minutesValue = document.querySelector('[data-minutes');
 const secondsValue = document.querySelector('[data-seconds]');
+const timePicker = document.querySelector('#datetime-picker');
+const timer = document.querySelector('.timer');
 
-let timerId = null;
-let ms = null;
 
-buttonStartValue.disabled = true;
 
-const options = {
-    enableTime: true,
-    time_24hr: true,
-    defaultDate: new Date(),
-    minuteIncrement: 1,
-    
-    onClose(selectedDates) {
-        ms = selectedDates[0].getTime();
-        if (ms < new Date()) {
-            Notify.failure('Please choose a date in the future')
-            return;
-        }
-        buttonStartValue.disabled = false;
-    },
-};
+const setFlatpickr = flatpickr(timePicker, {
+  enableTime: true,
+  time_24hr: true,
+  defaultDate: new Date(),
+  minuteIncrement: 1,
+  onClose(selectedDates) {
+    if (selectedDates[0] > Date.now()) {
+      buttonStartValue.removeAttribute('disabled');
+    } else {
+      Notify.failure('Please choose a date in the future');
+    }
+  },
+});
 
-flatpickr("#datetime-picker", options);
+function onClick() {
+  buttonStartValue.setAttribute('disabled', true);
 
-let object = {};
+  const timer = setInterval(() => {
+    const selectedDate = setFlatpickr.selectedDates[0].getTime() - Date.now();
 
-const onCountTime = () => {
-    timerId = setInterval(() => {
-        const diff = ms - new Date().getTime();
-        if (diff <= 0) {
-            clearTimeout(timerId);
-            return;
-        };
-    object = convertMs(diff);
-    onChangeContent(addLeadingZero(object));
-    }, 1000)
+    if (selectedDate > 0) {
+      renderTimer(convertMs(selectedDate));
+      secondsValue.classList.add('zero');
+    } else {
+      clearInterval(timer);
+      timePicker.removeAttribute('disabled');
+    }
+  }, 1000);
 }
 
-
-function onChangeContent({ days, hours, minutes, seconds }) {
-    daysValue.textContent = addLeadingZero(days);
-    hoursValue.textContent = addLeadingZero(hours);
-    minutesValue.textContent = addLeadingZero(minutes);
-    secondsValue.textContent = addLeadingZero(seconds);
+function renderTimer({ days, hours, minutes, seconds }) {
+  daysValue.textContent = days;
+  hoursValue.textContent = hours;
+  minutesValue.textContent = minutes;
+  secondsValue.textContent = seconds;
 }
-
 function addLeadingZero(value) {
   return String(value).padStart(2, '0');
 }
 
 function convertMs(ms) {
-    // Number of milliseconds per unit of time
-    const second = 1000;
-    const minute = second * 60;
-    const hour = minute * 60;
-    const day = hour * 24;
+  // Number of milliseconds per unit of time
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
 
-    // Remaining days
-    const days = Math.floor(ms / day);
-    // Remaining hours
-    const hours = Math.floor((ms % day) / hour);
-    // Remaining minutes
-    const minutes = Math.floor(((ms % day) % hour) / minute);
-    // Remaining seconds
-    const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  // Remaining days
+  const days = Math.floor(ms / day);
+  // Remaining hours
+  const hours = Math.floor((ms % day) / hour);
+  // Remaining minutes
+  const minutes = Math.floor(((ms % day) % hour) / minute);
+  // Remaining seconds
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
 
-    return { days, hours, minutes, seconds };
+  return { days, hours, minutes, seconds };
 }
 
-buttonStartValue.addEventListener("click", onCountTime);
+buttonStartValue.setAttribute('disabled', true);
+buttonStartValue.addEventListener('click', onClick);
+
+
+
+
+
+
+
+
+
+
+
+
