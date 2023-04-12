@@ -16,12 +16,12 @@ import "../css/common.css";
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const timer = {
- buttonStartValue : document.querySelector('[data-start]'),
- daysValue : document.querySelector('[data-days]'),
- hoursValue : document.querySelector('[data-hours]'),
- minutesValue : document.querySelector('[data-minutes]'),
- secondsValue : document.querySelector('[data-seconds]'),
-}
+  buttonStartValue: document.querySelector('[data-start]'),
+  daysValue: document.querySelector('[data-days]'),
+  hoursValue: document.querySelector('[data-hours]'),
+  minutesValue: document.querySelector('[data-minutes]'),
+  secondsValue: document.querySelector('[data-seconds]'),
+};
 
 let timerId = null;
 let ms = null;
@@ -48,18 +48,24 @@ const options = {
       if (!selectData) return;
 
       const diff = selectData - now;
-      const { days, hours, minutes, seconds } = convertMs(diff);
-      timer.daysValue.textContent = days;
-      timer.hoursValue.textContent = hours;
-      timer.minutesValue.textContent = minutes;
-      timer.secondsValue.textContent = seconds;
+      ms = diff;
 
-      if (
-        timer.daysValue.textContent === '0' &&
-        timer.hoursValue.textContent === '00' &&
-        timer.minutesValue.textContent === '00' &&
-        timer.secondsValue.textContent === '00'
-      ) {
+      if (ms <= 0) {
+        clearInterval(timerId);
+        timer.daysValue.textContent = '00';
+        timer.hoursValue.textContent = '00';
+        timer.minutesValue.textContent = '00';
+        timer.secondsValue.textContent = '00';
+        return;
+      }
+
+      const { days, hours, minutes, seconds } = convertMs(ms);
+      timer.daysValue.textContent = addLeadingZero(days);
+      timer.hoursValue.textContent = addLeadingZero(hours);
+      timer.minutesValue.textContent = addLeadingZero(minutes);
+      timer.secondsValue.textContent = addLeadingZero(seconds);
+
+      if (timer.daysValue.textContent === '00' && timer.hoursValue.textContent === '00' && timer.minutesValue.textContent === '00' && timer.secondsValue.textContent === '00') {
         clearInterval(timerId);
       }
     };
@@ -77,26 +83,27 @@ const options = {
 };
 
 flatpickr('#datetime-picker', { ...options });
+
 function addLeadingZero(value) {
   return String(value).padStart(2, '0');
 }
 
 function convertMs(ms) {
-    // Number of milliseconds per unit of time
-    const second = 1000;
-    const minute = second * 60;
-    const hour = minute * 60;
-    const day = hour * 24;
+  // Number of milliseconds per unit of time
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
 
-    // Remaining days
-    const days = Math.floor(ms / day);
-    // Remaining hours
-    const hours = Math.floor((ms % day) / hour);
-    // Remaining minutes
-    const minutes = Math.floor(((ms % day) % hour) / minute);
-    // Remaining seconds
-    const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  // Remaining days
+  const days = Math.floor(ms / day);
+  // Remaining hours
+  const hours = Math.floor((ms % day) / hour);
+  // Remaining minutes
+  const minutes = Math.floor(((ms % day) % hour) / minute);
+  // Remaining seconds
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
 
-    return { days, hours, minutes, seconds };
+  return { days, hours, minutes, seconds };
 }
 
